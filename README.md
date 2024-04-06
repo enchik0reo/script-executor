@@ -21,9 +21,9 @@ Software requirements:
 To start the application use three commands:
 
 ```sh
-$ git clone https://github.com/enchik0reo/scriptExecutor
+$ git clone https://github.com/enchik0reo/script-executor
 
-$ cd scriptExecutor
+$ cd script-executor
 
 $ docker-compose up --build
 ```

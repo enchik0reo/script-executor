@@ -15,6 +15,7 @@ const Commands = () => {
     const [errors, setErrors] = useState({})
     const [dataIsCorrect, setDataIsCorrect] = useState(false)
     const [currentList, setCurrentList] = useState([])
+    const [afterGet, setAfterGet] = useState(false)
 
     const handleChange = (event) => {
         setValues({
@@ -47,6 +48,7 @@ const Commands = () => {
                     setDataIsCorrect(false)
                 } else {
                     setCurrentList(r.data.body.commands)
+                    setAfterGet(true)
                     setDataIsCorrect(false)
                 }
             })
@@ -82,27 +84,32 @@ const Commands = () => {
                     </div>
 
                     <>
-                        {currentList.length > 0 ?
-                         <table className="table">
-                         <thead>
-                           <tr>
-                             <th>id</th>
-                             <th>preview</th>
-                             <th>created at (UTC)</th>
-                             <th>status</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           {currentList.map((row) => (
-                             <tr key={row.id}>
-                               <td>{row.id}</td>
-                               <td>{row.command_name}</td>
-                               <td>{row.created_at}</td>
-                               <td>{row.is_working ? "works" : "finished"}</td>
-                             </tr>
-                           ))}
-                         </tbody>
-                       </table>
+                        {afterGet ?
+                            currentList && currentList.length > 0 ?
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>id</th>
+                                            <th>preview</th>
+                                            <th>created at (UTC)</th>
+                                            <th>status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {currentList.map((row) => (
+                                            <tr key={row.id}>
+                                                <td>{row.id}</td>
+                                                <td>{row.command_name}</td>
+                                                <td>{row.created_at}</td>
+                                                <td>{row.is_working ? "works" : "finished"}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                :
+                                <div>
+                                    <p className="cmd-id">There are no working commands</p>
+                                </div>
                             :
                             <div></div>
                         }
