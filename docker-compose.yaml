@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:      
+  front:
+    build: ./front
+    depends_on:
+      - executor
+    ports:
+      - "3003:80"
+
+  executor:
+    build:
+      context: ./back
+    depends_on:
+      - postgres
+    ports:
+      - "8008:8008"
+    command: /bin/executor
+
+  postgres:
+    image: postgres:16.1-bullseye
+    restart: always
+    container_name: psql_commands
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_DB=command_api
+    ports:
+      - 5432:5432
+    volumes:
+      - ./back/scripts/1_init.up.sql:/docker-entrypoint-initdb.d/init.sql

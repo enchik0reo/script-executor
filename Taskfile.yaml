@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  dup:
+    desc: "Up docker-compose"
+    cmds:
+      - docker-compose up
+      
+  run:
+    desc: "Run the app"
+    dir: "./back"
+    cmds:
+      - go run ./cmd/commandApi/main.go

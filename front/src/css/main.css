@@ -1,0 +1,13 @@
+@font-face {
+    font-family: "JetBrains Mono", monospace;
+    src: url("../fonts/JetBrainsMono-Regular.ttf") format("truetype"); 
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+} 
+
+body {
+    padding-top: 60px;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 300;
+}

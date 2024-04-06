@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS commands
+(
+    command_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    command_name VARCHAR(30) NOT NULL,
+    started_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    is_working BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS works (
+    work_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    command_id INT NOT NULL,
+    output VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE works ADD CONSTRAINT fk_works_command_id FOREIGN KEY (command_id) REFERENCES commands (command_id) ON DELETE CASCADE;
