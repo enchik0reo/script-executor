@@ -65,7 +65,7 @@ func (a *App) MustRun() {
 	go func() {
 		if err := a.srv.Start(); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
-				a.log.Error("Failed ower working api service", a.log.Attr("error", err))
+				a.log.Error("Failed over working api service", a.log.Attr("error", err))
 				os.Exit(1)
 			}
 		}

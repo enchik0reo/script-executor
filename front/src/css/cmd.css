@@ -73,11 +73,11 @@
     font-size: 14px;
 }
 
-button:hover {
+.show-id:hover {
     transform: scale(1.05);
 }
 
-button:active {
+.show-id:active {
     transform: translateY(2px);
 }
 
