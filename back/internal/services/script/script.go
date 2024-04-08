@@ -4,28 +4,32 @@ import (
 	"bufio"
 	"fmt"
 	"os/exec"
-	"strings"
-	"syscall"
+	"sync/atomic"
 
 	"github.com/enchik0reo/commandApi/internal/logs"
+	"github.com/enchik0reo/commandApi/internal/services"
 )
 
-type ScriptExecutor struct {
+type Executor struct {
 	log *logs.CustomLog
 }
 
-func NewExecutor(log *logs.CustomLog) *ScriptExecutor {
-	return &ScriptExecutor{log: log}
+func NewExecutor(log *logs.CustomLog) *Executor {
+	return &Executor{log: log}
 }
 
-func (e *ScriptExecutor) RunScript(script string, stop <-chan struct{}) (<-chan string, <-chan error) {
+func (e *Executor) RunScript(script, scriptName string, stop <-chan struct{}) (<-chan string, <-chan error) {
 	const op = "script.StartScript"
+	var manualStopFlag int32 = 0
+
 	out := make(chan string)
 	errOut := make(chan error)
 
 	go func() {
-		defer close(errOut)
-		defer close(out)
+		defer func() {
+			close(errOut)
+			close(out)
+		}()
 
 		cmd := exec.Command("/bin/bash", "-c", script)
 
@@ -45,10 +49,16 @@ func (e *ScriptExecutor) RunScript(script string, stop <-chan struct{}) (<-chan 
 		go func() {
 			for v := range stop {
 				if v == struct{}{} {
-					e.log.Debug("script stopped manually", e.log.Attr("op", op), e.log.Attr("script", script))
+					e.log.Debug("script stopped manually", e.log.Attr("op", op), e.log.Attr("script", scriptName))
 
 					if err := stdout.Close(); err != nil {
 						errOut <- fmt.Errorf("can't close stdout pipe: %s: %v", op, err)
+					}
+
+					atomic.AddInt32(&manualStopFlag, 1)
+
+					if err := cmd.Process.Kill(); err != nil {
+						errOut <- fmt.Errorf("can't kill process: %s: %v", op, err)
 					}
 				}
 			}
@@ -58,13 +68,17 @@ func (e *ScriptExecutor) RunScript(script string, stop <-chan struct{}) (<-chan 
 			out <- scanner.Text()
 		}
 
-		if err := cmd.Wait(); err != nil {
-			if !strings.Contains(err.Error(), syscall.EPIPE.Error()) {
-				errOut <- fmt.Errorf("can't execute script: %v", err)
-				return
+		process, err := cmd.Process.Wait()
+		if err != nil {
+			errOut <- fmt.Errorf("can't wait process: %v", err)
+		}
+
+		success := process.Success()
+		if !success {
+			if manualStopFlag == 1 {
+				errOut <- services.ErrStoppedManually
 			} else {
-				errOut <- syscall.EPIPE
-				return
+				errOut <- fmt.Errorf("can't execute script")
 			}
 		}
 	}()

@@ -44,7 +44,7 @@ const Header = () => {
             <Router>
                 <Routes>
                     <Route path="/" element={<Create />} />
-                    <Route path="/download" element={<Create2 />} />
+                    <Route path="/upload" element={<Create2 />} />
                     <Route path="/list" element={<CommandList />} />
                     <Route path="/cmd" element={<Command />} />
                     <Route path="/stop" element={<Stop />} />

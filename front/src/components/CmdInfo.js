@@ -6,7 +6,7 @@ export default class CmdInfo extends React.Component {
         return (
             <div className="cmd">
                 <p className="cmd-id">Command id: {this.props.cmd.id}</p>
-                <p className="cmd-id">Short discription: {this.props.cmd.command_name}</p>
+                <p className="cmd-id">Short description: {this.props.cmd.command_name}</p>
                 <p className="cmd-id">Created at: {this.props.cmd.created_at}</p>
                 <p className="cmd-id">Status: {this.props.cmd.is_working ? "works" : "finished"}</p>
                 <div className="cmd-wrapper">

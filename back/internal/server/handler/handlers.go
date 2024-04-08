@@ -37,7 +37,7 @@ func (h *CustomRouter) create() http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), h.timeout)
 		defer cancel()
 
-		id, err := h.cmdr.CreateNewCommmand(ctx, req.Script)
+		id, err := h.cmdr.CreateNewCommand(ctx, req.Script)
 		if err != nil {
 			h.log.Error("Can't create new command", h.log.Attr("error", err))
 
@@ -58,7 +58,7 @@ func (h *CustomRouter) create() http.HandlerFunc {
 	}
 }
 
-func (h *CustomRouter) createDownload() http.HandlerFunc {
+func (h *CustomRouter) createUpload() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		defer r.Body.Close()
@@ -89,7 +89,7 @@ func (h *CustomRouter) createDownload() http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), h.timeout)
 		defer cancel()
 
-		id, err := h.cmdr.CreateNewCommmand(ctx, string(data))
+		id, err := h.cmdr.CreateNewCommand(ctx, string(data))
 		if err != nil {
 			h.log.Error("Can't create new command", h.log.Attr("error", err))
 

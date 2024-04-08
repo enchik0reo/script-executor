@@ -75,9 +75,9 @@ func (c *CommandStoage) GetList(ctx context.Context, n int64) ([]models.Command,
 
 // Get description of one command by command id ...
 func (c *CommandStoage) GetOne(ctx context.Context, id int64) (*models.Command, error) {
-	stmt, err := c.db.PrepareContext(ctx, `SELECT c.command_id, c.command_name, c.started_at, c.is_working, w.output 
+	stmt, err := c.db.PrepareContext(ctx, `SELECT c.command_id, c.command_name, c.started_at, c.is_working, o.output 
 	FROM commands c 
-	INNER JOIN works w ON c.command_id = w.command_id 
+	INNER JOIN outputs o ON c.command_id = o.command_id 
 	WHERE c.command_id = $1`)
 	if err != nil {
 		return nil, fmt.Errorf("can't prepare statement: %w", err)
@@ -135,7 +135,7 @@ func (c *CommandStoage) StopOne(ctx context.Context, id int64) (int64, error) {
 
 // Save command's output by command id ...
 func (c *CommandStoage) SaveOutput(ctx context.Context, id int64, output string) (int64, error) {
-	stmt, err := c.db.PrepareContext(ctx, "INSERT INTO works (command_id, output) VALUES ($1, $2) RETURNING work_id")
+	stmt, err := c.db.PrepareContext(ctx, "INSERT INTO outputs (command_id, output) VALUES ($1, $2) RETURNING output_id")
 	if err != nil {
 		return 0, fmt.Errorf("can't prepare statement: %w", err)
 	}

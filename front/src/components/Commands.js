@@ -9,13 +9,44 @@ const baseurl = "/list"
 const Commands = () => {
 
     const [values, setValues] = useState({
-        limit: 0,
+        limit: 5,
     })
 
     const [errors, setErrors] = useState({})
     const [dataIsCorrect, setDataIsCorrect] = useState(false)
     const [currentList, setCurrentList] = useState([])
     const [afterGet, setAfterGet] = useState(false)
+
+    useEffect(() => {
+        if (!afterGet) {
+        const prevConfig = {
+            params: {
+                limit: 5,
+            }
+        }
+
+        axios.get(baseurl, prevConfig).then((r) => {
+            if (r.data.status === 500) {
+                toast.error(r.data.body.error)
+                setDataIsCorrect(false)
+            } else if (r.data.status === 400) {
+                toast.warn(r.data.body.error)
+                setDataIsCorrect(false)
+            } else {
+                setCurrentList(r.data.body.commands)
+                setAfterGet(true)
+                setDataIsCorrect(false)
+            }
+        })
+            .catch((error) => {
+                if (error) {
+                    toast.error("Internal server error. Please, try later.")
+                    console.error('Internal server error:', error)
+                    setDataIsCorrect(false)
+                }
+            })
+        }
+    }, [dataIsCorrect, afterGet])
 
     const handleChange = (event) => {
         setValues({

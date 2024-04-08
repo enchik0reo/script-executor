@@ -3,6 +3,10 @@
 It's a full-stack web application called Script Executor that lets people execute bash scripts on remote server.
 Backend powered by Go. Frontend powered by React.
 
+## Scheme
+
+![Scheme](./scheme.png)
+
 ## Features
 
 - 3 levels of logging (edit in ./back/configs/local.yaml)

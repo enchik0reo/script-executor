@@ -13,7 +13,7 @@ import (
 )
 
 type Commander interface {
-	CreateNewCommmand(context.Context, string) (int64, error)
+	CreateNewCommand(context.Context, string) (int64, error)
 	GetCommandList(context.Context, int64) ([]models.Command, error)
 	GetOneCommandDescription(context.Context, int64) (*models.Command, error)
 	StopCommand(context.Context, int64) (int64, error)
@@ -36,7 +36,7 @@ func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.Cust
 	r.Use(corsSettings(domains))
 
 	r.Post("/create", r.create())
-	r.Post("/create/download", r.createDownload())
+	r.Post("/create/upload", r.createUpload())
 	r.Get("/list", r.commands())
 	r.Get("/cmd", r.command())
 	r.Put("/stop", r.stopCommand())

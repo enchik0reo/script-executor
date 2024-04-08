@@ -86,7 +86,7 @@ const Creator = () => {
                             <a className="menu-item active" href="/" aria-current="page">write</a>
                         </li>
                         <li>
-                            <a className="menu-item" href="/download">download</a>
+                            <a className="menu-item" href="/upload">upload</a>
                         </li>
                     </ul>
                 </nav>

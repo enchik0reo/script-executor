@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/enchik0reo/commandApi/internal/logs"
@@ -14,7 +13,7 @@ import (
 	"github.com/enchik0reo/commandApi/internal/services"
 )
 
-type Sotrager interface {
+type Storager interface {
 	CreateNew(context.Context, string) (int64, error)
 	GetList(context.Context, int64) ([]models.Command, error)
 	GetOne(context.Context, int64) (*models.Command, error)
@@ -23,17 +22,16 @@ type Sotrager interface {
 }
 
 type Executor interface {
-	RunScript(string, <-chan struct{}) (<-chan string, <-chan error)
+	RunScript(string, string, <-chan struct{}) (<-chan string, <-chan error)
 }
 
 const (
 	contextDuration = 3 * time.Second
-	minScriptLenght = 11
-	maxScriptLenght = 38
+	maxScriptLenght = 27
 )
 
 type Commander struct {
-	cmdStorage Sotrager
+	cmdStorage Storager
 	exec       Executor
 
 	log       *logs.CustomLog
@@ -41,7 +39,7 @@ type Commander struct {
 	mu        *sync.RWMutex
 }
 
-func NewCommander(l *logs.CustomLog, s Sotrager, e Executor) *Commander {
+func NewCommander(l *logs.CustomLog, s Storager, e Executor) *Commander {
 	c := &Commander{
 		log:        l,
 		cmdStorage: s,
@@ -53,12 +51,15 @@ func NewCommander(l *logs.CustomLog, s Sotrager, e Executor) *Commander {
 	return c
 }
 
-func (c *Commander) CreateNewCommmand(ctx context.Context, script string) (int64, error) {
+func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64, error) {
 	const op = "commander.CreateNewCommand"
 
-	scriptName := validateScript(script)
+	sName, err := scriptName(script)
+	if err != nil {
+		return -1, fmt.Errorf("can't make script name: %s: %v", op, err)
+	}
 
-	id, err := c.cmdStorage.CreateNew(ctx, scriptName)
+	id, err := c.cmdStorage.CreateNew(ctx, sName)
 	if err != nil {
 		return -1, fmt.Errorf("can't create new command in storage: %s: %v", op, err)
 	}
@@ -69,7 +70,7 @@ func (c *Commander) CreateNewCommmand(ctx context.Context, script string) (int64
 	c.stopChans[id] = stopCh
 	c.mu.Unlock()
 
-	resCh, errCh := c.exec.RunScript(script, stopCh)
+	resCh, errCh := c.exec.RunScript(script, sName, stopCh)
 
 	go func() {
 		defer func() {
@@ -104,7 +105,7 @@ func (c *Commander) CreateNewCommmand(ctx context.Context, script string) (int64
 				}
 			case err, open := <-errCh:
 				if open {
-					if errors.Is(err, syscall.EPIPE) {
+					if errors.Is(err, services.ErrStoppedManually) {
 						ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
 
 						if _, errOut := c.cmdStorage.SaveOutput(ctx, id, "Execution was interrupted"); errOut != nil {
@@ -201,14 +202,14 @@ func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	return resErr
 }
 
-func validateScript(script string) string {
-	scriptName := strings.ReplaceAll(script, "\n", " ")
+func scriptName(script string) (string, error) {
+	sName := strings.ReplaceAll(script, "\n", " ")
+	res := []rune(sName)
 
-	if len(scriptName) > maxScriptLenght {
-		scriptName = scriptName[minScriptLenght:maxScriptLenght] + "..."
-	} else if len(scriptName) > minScriptLenght {
-		scriptName = scriptName[minScriptLenght:]
+	if len(res) > maxScriptLenght {
+		res = res[:maxScriptLenght]
+		res = append(res, []rune("...")...)
 	}
 
-	return scriptName
+	return string(res), nil
 }

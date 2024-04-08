@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
 
-const baseurl = "/create/download"
+const baseurl = "/create/upload"
 
 const Creator2 = () => {
 
@@ -95,7 +95,7 @@ const Creator2 = () => {
                             <a className="menu-item" href="/" aria-current="page">write</a>
                         </li>
                         <li>
-                            <a className="menu-item active" href="/download">download</a>
+                            <a className="menu-item active" href="/upload">upload</a>
                         </li>
                     </ul>
                 </nav>

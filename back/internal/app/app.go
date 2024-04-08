@@ -48,13 +48,13 @@ func New() *App {
 
 	a.cmd = commander.NewCommander(a.log, cS, e)
 
-	handler, err := handler.New(a.cmd, a.cfg.Frontend.Domains, a.cfg.Server.Timeout, a.log)
+	h, err := handler.New(a.cmd, a.cfg.Frontend.Domains, a.cfg.Server.Timeout, a.log)
 	if err != nil {
 		a.log.Error("Failed to create handler", a.log.Attr("error", err))
 		os.Exit(1)
 	}
 
-	a.srv = server.New(handler, &a.cfg.Server, a.log)
+	a.srv = server.New(h, &a.cfg.Server, a.log)
 
 	return a
 }
