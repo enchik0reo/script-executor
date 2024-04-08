@@ -6,9 +6,9 @@ Backend powered by Go. Frontend powered by React.
 ## Features
 
 - 3 levels of logging (edit in ./back/configs/local.yaml)
-- Web api server on net/http (use chi router)
+- Web api server use chi router
 - RESTful routing
-- Data persistence using PostgreSQL
+- Data base - PostgreSQL
 - Frontend using React
 
 ## Development
@@ -29,4 +29,4 @@ $ docker-compose up --build
 ```
 - Go to http://localhost:3003/ and try app
 
-To terminate services, the application uses `SIGTERM` signal (use Ctrl+C)
+To terminate service, the application uses `SIGTERM` signal (use Ctrl+C)

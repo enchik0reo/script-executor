@@ -86,7 +86,7 @@ const Cmd = () => {
                                 <CmdInfo cmd={currentCmd.command} />
                                 :
                                 <div>
-                                    <p className="cmd-id">There is no command with this id</p>
+                                    <p className="cmd-id">There is no stdout history for this id</p>
                                 </div>
                             
                            :
