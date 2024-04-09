@@ -37,6 +37,8 @@ type FrontendServer struct {
 	Domains []string `yaml:"domains" env-required:"true"`
 }
 
+// MustLoad load data from file and environment variables.
+// It exit if an error happened ...
 func MustLoad() *Config {
 	cfg := &Config{}
 
@@ -57,6 +59,7 @@ func MustLoad() *Config {
 	return cfg
 }
 
+// fetchConfigPath load a configuration's path from an environment variable ...
 func fetchConfigPath() (string, error) {
 	if err := godotenv.Load(); err != nil {
 		return "", fmt.Errorf("can't load config: %v", err)

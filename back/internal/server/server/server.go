@@ -14,6 +14,7 @@ type Server struct {
 	server *http.Server
 }
 
+// New creates a new instance of Server ...
 func New(handler http.Handler, c *config.ApiServer, l *logs.CustomLog) *Server {
 	srv := setupServer(handler, c)
 
@@ -35,11 +36,13 @@ func setupServer(handler http.Handler, cfg *config.ApiServer) *http.Server {
 	}
 }
 
+// Start starts server ...
 func (s *Server) Start() error {
 	s.log.Info("Web server is running", "address", s.cfg.Address)
 	return s.server.ListenAndServe()
 }
 
+// Stop stops server ...
 func (s *Server) Stop(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }

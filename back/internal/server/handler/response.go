@@ -19,6 +19,7 @@ type respBody struct {
 	Error              string           `json:"error,omitempty"`
 }
 
+// responseJSONOk writes to ResponseWriter status and body ...
 func responseJSONOk(w http.ResponseWriter, status int, body respBody) error {
 	resp := response{
 		Status: status,
@@ -40,6 +41,7 @@ func responseJSONOk(w http.ResponseWriter, status int, body respBody) error {
 	return nil
 }
 
+// rresponseJSONError writes to ResponseWriter status and error ...
 func responseJSONError(w http.ResponseWriter, status int, error string) error {
 	resp := response{
 		Status: status,

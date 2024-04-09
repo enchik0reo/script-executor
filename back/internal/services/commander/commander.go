@@ -39,6 +39,7 @@ type Commander struct {
 	mu        *sync.RWMutex
 }
 
+// NewCommander creates a new instance of Commander ...
 func NewCommander(l *logs.CustomLog, s Storager, e Executor) *Commander {
 	c := &Commander{
 		log:        l,
@@ -51,6 +52,8 @@ func NewCommander(l *logs.CustomLog, s Storager, e Executor) *Commander {
 	return c
 }
 
+// CreateNewCommand starts new script.
+// It creates new record in storage and runs the script in new gorutine ...
 func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64, error) {
 	const op = "commander.CreateNewCommand"
 
@@ -137,6 +140,7 @@ func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64,
 	return id, nil
 }
 
+// GetCommandList returns the list of command with limit from storage ...
 func (c *Commander) GetCommandList(ctx context.Context, limit int64) ([]models.Command, error) {
 	const op = "commander.GetCommandList"
 	cmds, err := c.cmdStorage.GetList(ctx, limit)
@@ -147,6 +151,7 @@ func (c *Commander) GetCommandList(ctx context.Context, limit int64) ([]models.C
 	return cmds, nil
 }
 
+// GetOneCommandDescription returns the command's info from storage ...
 func (c *Commander) GetOneCommandDescription(ctx context.Context, id int64) (*models.Command, error) {
 	const op = "commander.GetCommandDescription"
 	cmd, err := c.cmdStorage.GetOne(ctx, id)
@@ -157,6 +162,8 @@ func (c *Commander) GetOneCommandDescription(ctx context.Context, id int64) (*mo
 	return cmd, nil
 }
 
+// StopCommand stops the command by id.
+// It updates record in storage ...
 func (c *Commander) StopCommand(ctx context.Context, id int64) (int64, error) {
 	const op = "commander.StopCommand"
 	var res int64
@@ -182,6 +189,7 @@ func (c *Commander) StopCommand(ctx context.Context, id int64) (int64, error) {
 	return res, nil
 }
 
+// StopAllRunningScripts stops all running commands ...
 func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	const op = "commander.StopAllRunningScripts"
 	var resErr error
@@ -202,6 +210,7 @@ func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	return resErr
 }
 
+// scriptName returns correct name of script ...
 func scriptName(script string) (string, error) {
 	sName := strings.ReplaceAll(script, "\n", " ")
 	res := []rune(sName)

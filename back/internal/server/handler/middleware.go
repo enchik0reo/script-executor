@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
+// corsSettings sets allowed domains, http methods, header for communication with frontend server ...
 func corsSettings(domains []string) func(next http.Handler) http.Handler {
 	h := cors.Handler(cors.Options{
 		AllowedOrigins:   domains,
@@ -22,6 +23,7 @@ func corsSettings(domains []string) func(next http.Handler) http.Handler {
 	return h
 }
 
+// loggerMw add information form ResponseWriter and Request ...
 func loggerMw(log *logs.CustomLog) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		log := log.With(

@@ -28,6 +28,8 @@ type App struct {
 	srv *server.Server
 }
 
+// New creates a new instance of App.
+// It exit if an error happened ...
 func New() *App {
 	a := &App{}
 	var err error
@@ -59,6 +61,8 @@ func New() *App {
 	return a
 }
 
+// MustRun runs http server and wait for a signal to call mustStop.
+// It exit if an error happened ...
 func (a *App) MustRun() {
 	a.log.Info("Starting command executor service", "env", a.cfg.Env)
 
@@ -78,6 +82,7 @@ func (a *App) MustRun() {
 	a.mustStop()
 }
 
+// mustStop stops the App's working elements ...
 func (a *App) mustStop() {
 	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.CtxTimeout)
 	defer cancel()
@@ -97,6 +102,7 @@ func (a *App) mustStop() {
 	a.log.Info("Command executor  stoped gracefully")
 }
 
+// connectionAttemptToDB tries to connect to database ...
 func connectionAttemptToDB(psql config.Postgres) (*sql.DB, error) {
 	var err error
 	var db *sql.DB

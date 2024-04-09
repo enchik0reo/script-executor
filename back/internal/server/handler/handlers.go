@@ -16,6 +16,7 @@ type createRequest struct {
 	Script string `json:"script"`
 }
 
+// create creates new command ...
 func (h *CustomRouter) create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -58,6 +59,7 @@ func (h *CustomRouter) create() http.HandlerFunc {
 	}
 }
 
+// create creates new command from file ...
 func (h *CustomRouter) createUpload() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -110,6 +112,7 @@ func (h *CustomRouter) createUpload() http.HandlerFunc {
 	}
 }
 
+// commands returns list of commands ...
 func (h *CustomRouter) commands() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -153,6 +156,7 @@ func (h *CustomRouter) commands() http.HandlerFunc {
 	}
 }
 
+// command returns information about one command ...
 func (h *CustomRouter) command() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -200,6 +204,7 @@ type stopCommandRequest struct {
 	ID string `json:"id"`
 }
 
+// stopCommand stops execution of command ...
 func (h *CustomRouter) stopCommand() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 

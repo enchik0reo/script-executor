@@ -21,6 +21,7 @@ const (
 	envProd      = "prod"
 )
 
+// NewLogger creates a new instance of CustomLog ...
 func NewLogger(env string) *CustomLog {
 	var log *slog.Logger
 
@@ -38,6 +39,7 @@ func NewLogger(env string) *CustomLog {
 	return &CustomLog{log}
 }
 
+// Attr helps to add attributes for logging ...
 func (l *CustomLog) Attr(key string, value any) slog.Attr {
 	val := slog.AnyValue(value)
 
@@ -51,6 +53,7 @@ func (l *CustomLog) Attr(key string, value any) slog.Attr {
 	}
 }
 
+// setupCustomSlog creates a new instance of Logger with logging level debug ...
 func setupCustomSlog() *slog.Logger {
 	opts := customHandlerOptions{
 		SlogOpts: &slog.HandlerOptions{
@@ -63,6 +66,7 @@ func setupCustomSlog() *slog.Logger {
 	return slog.New(handler)
 }
 
+// setupCustomSlogInfo creates a new instance of Logger with logging level info ...
 func setupCustomSlogInfo() *slog.Logger {
 	opts := customHandlerOptions{
 		SlogOpts: &slog.HandlerOptions{
@@ -85,6 +89,7 @@ type customHandler struct {
 	attrs []slog.Attr
 }
 
+// NewCustomHandler is for slog.Handler override ...
 func (opts customHandlerOptions) NewCustomHandler(out io.Writer) *customHandler {
 	h := &customHandler{
 		Handler: slog.NewJSONHandler(out, opts.SlogOpts),
@@ -94,6 +99,7 @@ func (opts customHandlerOptions) NewCustomHandler(out io.Writer) *customHandler 
 	return h
 }
 
+// NewCustomHandler is for slog.Handler override ...
 func (h *customHandler) Handle(_ context.Context, r slog.Record) error {
 	level := r.Level.String() + ":"
 
@@ -135,6 +141,7 @@ func (h *customHandler) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
+// NewCustomHandler is for slog.Handler override ...
 func (h *customHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &customHandler{
 		Handler: h.Handler,
@@ -143,6 +150,7 @@ func (h *customHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
+// NewCustomHandler is for slog.Handler override ...
 func (h *customHandler) WithGroup(name string) slog.Handler {
 	return &customHandler{
 		Handler: h.Handler.WithGroup(name),
@@ -153,7 +161,8 @@ func (h *customHandler) WithGroup(name string) slog.Handler {
 // Experimental var for runtime info ...
 var skipLevel = 4
 
-// Experimental function only for local usage ...
+// runtimeInfo it's xperimental function only for local usage.
+// It returns runtime file info ...
 func runtimeInfo(skipLevel int) string {
 	pc, _, no, ok := runtime.Caller(skipLevel)
 	details := runtime.FuncForPC(pc)

@@ -17,7 +17,7 @@ func NewCommandStorage(db *sql.DB) *CommandStoage {
 	return &CommandStoage{db: db}
 }
 
-// Add new command ...
+// CreateNew adds new command to db ...
 func (c *CommandStoage) CreateNew(ctx context.Context, comandName string) (int64, error) {
 	stmt, err := c.db.PrepareContext(ctx, "INSERT INTO commands (command_name) VALUES ($1) RETURNING command_id")
 	if err != nil {
@@ -40,7 +40,7 @@ func (c *CommandStoage) CreateNew(ctx context.Context, comandName string) (int64
 	return id, nil
 }
 
-// Get n latest commands ...
+// GetList returns n latest commands ...
 func (c *CommandStoage) GetList(ctx context.Context, n int64) ([]models.Command, error) {
 	stmt, err := c.db.PrepareContext(ctx, `SELECT command_id, command_name, started_at, is_working 
 	FROM commands ORDER BY command_id DESC LIMIT $1`)
@@ -73,7 +73,7 @@ func (c *CommandStoage) GetList(ctx context.Context, n int64) ([]models.Command,
 	return cmds, nil
 }
 
-// Get description of one command by command id ...
+// GetOne returns description of one command by command id ...
 func (c *CommandStoage) GetOne(ctx context.Context, id int64) (*models.Command, error) {
 	stmt, err := c.db.PrepareContext(ctx, `SELECT c.command_id, c.command_name, c.started_at, c.is_working, o.output 
 	FROM commands c 
@@ -111,7 +111,7 @@ func (c *CommandStoage) GetOne(ctx context.Context, id int64) (*models.Command, 
 	return &cmd, nil
 }
 
-// Stop the command by command id ...
+// StopOne stops the command by command id ...
 func (c *CommandStoage) StopOne(ctx context.Context, id int64) (int64, error) {
 	stmt, err := c.db.PrepareContext(ctx, `UPDATE commands SET is_working = false
 	WHERE command_id = $1 RETURNING command_id`)
@@ -133,7 +133,7 @@ func (c *CommandStoage) StopOne(ctx context.Context, id int64) (int64, error) {
 	return id, nil
 }
 
-// Save command's output by command id ...
+// SaveOutput saves command's output by command id ...
 func (c *CommandStoage) SaveOutput(ctx context.Context, id int64, output string) (int64, error) {
 	stmt, err := c.db.PrepareContext(ctx, "INSERT INTO outputs (command_id, output) VALUES ($1, $2) RETURNING output_id")
 	if err != nil {

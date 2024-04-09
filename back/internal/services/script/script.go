@@ -14,10 +14,13 @@ type Executor struct {
 	log *logs.CustomLog
 }
 
+// NewExecutor creates a new instance of Executor ...
 func NewExecutor(log *logs.CustomLog) *Executor {
 	return &Executor{log: log}
 }
 
+// RunScript executing script.
+// It returns channels for use in new gorutine ...
 func (e *Executor) RunScript(script, scriptName string, stop <-chan struct{}) (<-chan string, <-chan error) {
 	const op = "script.StartScript"
 	var manualStopFlag int32 = 0

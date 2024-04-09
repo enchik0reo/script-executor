@@ -26,6 +26,7 @@ type CustomRouter struct {
 	log     *logs.CustomLog
 }
 
+// New returns new handler ...
 func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.CustomLog) (http.Handler, error) {
 	r := CustomRouter{chi.NewRouter(), cmdr, timeout, log}
 
