@@ -13,6 +13,9 @@ import (
 	"github.com/enchik0reo/commandApi/internal/services"
 )
 
+//go:generate mockgen -destination=mocks/commander.go -package=mocks -source=commander.go
+
+//go:generate go run github.com/vektra/mockery/v2@v2.42.2 --name=Storager
 type Storager interface {
 	CreateNew(context.Context, string) (int64, error)
 	GetList(context.Context, int64) ([]models.Command, error)
@@ -21,6 +24,7 @@ type Storager interface {
 	SaveOutput(context.Context, int64, string) (int64, error)
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.42.2 --name=Executor
 type Executor interface {
 	RunScript(string, string, <-chan struct{}) (<-chan string, <-chan error)
 }
@@ -57,10 +61,7 @@ func NewCommander(l *logs.CustomLog, s Storager, e Executor) *Commander {
 func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64, error) {
 	const op = "commander.CreateNewCommand"
 
-	sName, err := scriptName(script)
-	if err != nil {
-		return -1, fmt.Errorf("can't make script name: %s: %v", op, err)
-	}
+	sName := scriptName(script)
 
 	id, err := c.cmdStorage.CreateNew(ctx, sName)
 	if err != nil {
@@ -210,8 +211,8 @@ func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	return resErr
 }
 
-// scriptName returns correct name of script ...
-func scriptName(script string) (string, error) {
+// scriptName returns valid name of script ...
+func scriptName(script string) string {
 	sName := strings.ReplaceAll(script, "\n", " ")
 	res := []rune(sName)
 
@@ -220,5 +221,5 @@ func scriptName(script string) (string, error) {
 		res = append(res, []rune("...")...)
 	}
 
-	return string(res), nil
+	return string(res)
 }

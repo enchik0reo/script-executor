@@ -12,6 +12,9 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+//go:generate mockgen -destination=mocks/handler.go -package=mocks -source=routes.go
+
+//go:generate go run github.com/vektra/mockery/v2@v2.42.2 --name=Commander
 type Commander interface {
 	CreateNewCommand(context.Context, string) (int64, error)
 	GetCommandList(context.Context, int64) ([]models.Command, error)
@@ -27,7 +30,7 @@ type CustomRouter struct {
 }
 
 // New returns new handler ...
-func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.CustomLog) (http.Handler, error) {
+func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.CustomLog) http.Handler {
 	r := CustomRouter{chi.NewRouter(), cmdr, timeout, log}
 
 	r.Use(middleware.RequestID)
@@ -42,5 +45,5 @@ func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.Cust
 	r.Get("/cmd", r.command())
 	r.Put("/stop", r.stopCommand())
 
-	return r, nil
+	return r
 }

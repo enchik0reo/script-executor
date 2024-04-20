@@ -67,7 +67,7 @@ func (h *CustomRouter) createUpload() http.HandlerFunc {
 
 		file, header, err := r.FormFile("file")
 		if err != nil {
-			h.log.Error("Can't get file", h.log.Attr("error", err), h.log.Attr("fileName", header.Filename))
+			h.log.Error("Can't get file", h.log.Attr("error", err))
 
 			err = responseJSONError(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			if err != nil {
