@@ -1,7 +1,6 @@
 # Script Executor
 
 It's a full-stack web application called Script Executor that lets people execute bash scripts on remote server.
-Backend powered by Go. Frontend powered by React.
 
 ## Scheme
 
@@ -9,11 +8,15 @@ Backend powered by Go. Frontend powered by React.
 
 ## Features
 
-- 3 levels of logging (edit in ./back/configs/local.yaml)
-- Web api server use chi router
+- Backend powered by Go
+- Frontend powered by React
 - RESTful routing
-- Data base - PostgreSQL
-- Frontend using React
+- Backend server uses chi router
+- PostgreSQL as data base
+- 3 levels of logging (edit in ./back/configs/local.yaml)
+- Mock tests
+- GitHub Actions workflow for autotesting
+- Swagger API documentation
 
 ## Development
 
@@ -31,6 +34,7 @@ $ cd script-executor
 
 $ docker-compose up --build
 ```
-- Go to http://localhost:3003/ and try app
+- Go to http://localhost:3003/ and try web app
+- Go to http://localhost:8008/swagger/index.html and try swagger
 
 To terminate service, the application uses `SIGTERM` signal (use Ctrl+C)

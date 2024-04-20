@@ -1,0 +1,236 @@
+basePath: /
+definitions:
+  handler.commandRespBodyOK:
+    properties:
+      command:
+        $ref: '#/definitions/models.Command'
+    type: object
+  handler.commandRespOK:
+    properties:
+      body:
+        $ref: '#/definitions/handler.commandRespBodyOK'
+      status:
+        type: integer
+    type: object
+  handler.commandsRespBodyOK:
+    properties:
+      commands:
+        items:
+          $ref: '#/definitions/models.Command'
+        type: array
+    type: object
+  handler.commandsRespOK:
+    properties:
+      body:
+        $ref: '#/definitions/handler.commandsRespBodyOK'
+      status:
+        type: integer
+    type: object
+  handler.createRequest:
+    properties:
+      script:
+        type: string
+    type: object
+  handler.idRespBodyOK:
+    properties:
+      command_id:
+        type: integer
+    type: object
+  handler.idRespOK:
+    properties:
+      body:
+        $ref: '#/definitions/handler.idRespBodyOK'
+      status:
+        type: integer
+    type: object
+  handler.respBodyErr:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.responseErr:
+    properties:
+      body:
+        $ref: '#/definitions/handler.respBodyErr'
+      status:
+        type: integer
+    type: object
+  handler.stopCommandRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  models.Command:
+    properties:
+      command_name:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_working:
+        type: boolean
+      output:
+        items:
+          type: string
+        type: array
+    type: object
+host: localhost:8008
+info:
+  contact: {}
+  description: API Server for Script Executor
+  title: Script Executor API
+  version: "1.0"
+paths:
+  /cmd:
+    get:
+      consumes:
+      - application/json
+      description: Show command description by id
+      parameters:
+      - description: Command id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sucess
+          schema:
+            $ref: '#/definitions/handler.commandRespOK'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+      summary: Show one command
+      tags:
+      - commands
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: Run new command and add it to DB
+      parameters:
+      - description: Script for execution
+        in: body
+        name: command
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Sucess
+          schema:
+            $ref: '#/definitions/handler.idRespOK'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+      summary: Create new command
+      tags:
+      - commands
+  /create/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Run new command from file and add it to DB
+      parameters:
+      - description: Upload file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Sucess
+          schema:
+            $ref: '#/definitions/handler.idRespOK'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+      summary: Create new command from file
+      tags:
+      - commands
+  /list:
+    get:
+      consumes:
+      - application/json
+      description: Show last n commands
+      parameters:
+      - description: Limit for commands
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sucess
+          schema:
+            $ref: '#/definitions/handler.commandsRespOK'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+      summary: Show commands
+      tags:
+      - commands
+  /stop:
+    put:
+      consumes:
+      - application/json
+      description: Stop command's execution by id
+      parameters:
+      - description: Command id
+        in: body
+        name: id
+        required: true
+        schema:
+          $ref: '#/definitions/handler.stopCommandRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Sucess
+          schema:
+            $ref: '#/definitions/handler.idRespOK'
+        "304":
+          description: Not Modified
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.responseErr'
+      summary: Stop one command
+      tags:
+      - commands
+swagger: "2.0"

@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	_ "github.com/enchik0reo/commandApi/docs"
 	"github.com/enchik0reo/commandApi/internal/logs"
 	"github.com/enchik0reo/commandApi/internal/models"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	httpSwagger "github.com/swaggo/http-swagger" // swagger embed files
 )
 
 //go:generate mockgen -destination=mocks/handler.go -package=mocks -source=routes.go
@@ -44,6 +46,10 @@ func New(cmdr Commander, domains []string, timeout time.Duration, log *logs.Cust
 	r.Get("/list", r.commands())
 	r.Get("/cmd", r.command())
 	r.Put("/stop", r.stopCommand())
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8008/swagger/doc.json"),
+	))
 
 	return r
 }

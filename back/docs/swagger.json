@@ -1,0 +1,363 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API Server for Script Executor",
+        "title": "Script Executor API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8008",
+    "basePath": "/",
+    "paths": {
+        "/cmd": {
+            "get": {
+                "description": "Show command description by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Show one command",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Command id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucess",
+                        "schema": {
+                            "$ref": "#/definitions/handler.commandRespOK"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/create": {
+            "post": {
+                "description": "Run new command and add it to DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Create new command",
+                "parameters": [
+                    {
+                        "description": "Script for execution",
+                        "name": "command",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.createRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Sucess",
+                        "schema": {
+                            "$ref": "#/definitions/handler.idRespOK"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/create/upload": {
+            "post": {
+                "description": "Run new command from file and add it to DB",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Create new command from file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Upload file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Sucess",
+                        "schema": {
+                            "$ref": "#/definitions/handler.idRespOK"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/list": {
+            "get": {
+                "description": "Show last n commands",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Show commands",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit for commands",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucess",
+                        "schema": {
+                            "$ref": "#/definitions/handler.commandsRespOK"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/stop": {
+            "put": {
+                "description": "Stop command's execution by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Stop one command",
+                "parameters": [
+                    {
+                        "description": "Command id",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.stopCommandRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Sucess",
+                        "schema": {
+                            "$ref": "#/definitions/handler.idRespOK"
+                        }
+                    },
+                    "304": {
+                        "description": "Not Modified",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.responseErr"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handler.commandRespBodyOK": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "$ref": "#/definitions/models.Command"
+                }
+            }
+        },
+        "handler.commandRespOK": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/handler.commandRespBodyOK"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.commandsRespBodyOK": {
+            "type": "object",
+            "properties": {
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Command"
+                    }
+                }
+            }
+        },
+        "handler.commandsRespOK": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/handler.commandsRespBodyOK"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.createRequest": {
+            "type": "object",
+            "properties": {
+                "script": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.idRespBodyOK": {
+            "type": "object",
+            "properties": {
+                "command_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.idRespOK": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/handler.idRespBodyOK"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.respBodyErr": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.responseErr": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/handler.respBodyErr"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.stopCommandRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Command": {
+            "type": "object",
+            "properties": {
+                "command_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_working": {
+                    "type": "boolean"
+                },
+                "output": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
