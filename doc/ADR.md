@@ -1,0 +1,6 @@
+- [ADR 1: Реализация frontend с использованием React](./adr/adr-001.md)
+- [ADR 2: Использование Docker и Docker-Compose](./adr/adr-002.md)
+- [ADR 3: Использование Swagger документации API](./adr/adr-003.md)
+- [ADR 4: Использование chi в качестве backend роутера](./adr/adr-004.md)
+- [ADR 5: Логирование backend части приложения](./adr/adr-005.md)
+- [ADR 6: Возможность конкурентного выполнения команд](./adr/adr-006.md)

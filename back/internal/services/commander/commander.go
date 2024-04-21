@@ -76,67 +76,7 @@ func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64,
 
 	resCh, errCh := c.exec.RunScript(script, sName, stopCh)
 
-	go func() {
-		defer func() {
-			ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
-
-			if _, err := c.cmdStorage.StopOne(ctx, id); err != nil {
-				c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
-			}
-
-			cancel()
-
-			c.mu.Lock()
-			delete(c.stopChans, id)
-			c.mu.Unlock()
-
-			close(stopCh)
-		}()
-
-		for {
-			select {
-			case res, open := <-resCh:
-				if open {
-					ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
-
-					if _, err := c.cmdStorage.SaveOutput(ctx, id, res); err != nil {
-						c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
-					}
-
-					cancel()
-				} else {
-					return
-				}
-			case err, open := <-errCh:
-				if open {
-					if errors.Is(err, services.ErrStoppedManually) {
-						ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
-
-						if _, errOut := c.cmdStorage.SaveOutput(ctx, id, "Execution was interrupted"); errOut != nil {
-							c.log.Error("can't save info in storage", c.log.Attr("op", op), c.log.Attr("error", errOut))
-						}
-
-						cancel()
-						return
-					} else {
-						ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
-
-						if _, errOut := c.cmdStorage.SaveOutput(ctx,
-							id, fmt.Sprintf("Stopped with error: %s", err.Error())); errOut != nil {
-							c.log.Error("can't save error in storage", c.log.Attr("op", op), c.log.Attr("error", errOut))
-						}
-
-						cancel()
-
-						c.log.Info("can't execute sctipt", c.log.Attr("op", op), c.log.Attr("error", err))
-						return
-					}
-				} else {
-					return
-				}
-			}
-		}
-	}()
+	go c.saveOutput(id, resCh, errCh, stopCh)
 
 	return id, nil
 }
@@ -209,6 +149,72 @@ func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	}
 
 	return resErr
+}
+
+// saveOutput waits output information form running script
+// and creates new record in storage for every output event ...
+func (c *Commander) saveOutput(id int64, resCh <-chan string, errCh <-chan error, stopCh chan struct{}) {
+	const op = "commander.saveOutput"
+
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
+
+		if _, err := c.cmdStorage.StopOne(ctx, id); err != nil {
+			c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
+		}
+
+		cancel()
+
+		c.mu.Lock()
+		delete(c.stopChans, id)
+		c.mu.Unlock()
+
+		close(stopCh)
+	}()
+
+	for {
+		select {
+		case res, open := <-resCh:
+			if open {
+				ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
+
+				if _, err := c.cmdStorage.SaveOutput(ctx, id, res); err != nil {
+					c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
+				}
+
+				cancel()
+			} else {
+				return
+			}
+		case err, open := <-errCh:
+			if open {
+				if errors.Is(err, services.ErrStoppedManually) {
+					ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
+
+					if _, errOut := c.cmdStorage.SaveOutput(ctx, id, "Execution was interrupted"); errOut != nil {
+						c.log.Error("can't save info in storage", c.log.Attr("op", op), c.log.Attr("error", errOut))
+					}
+
+					cancel()
+					return
+				} else {
+					ctx, cancel := context.WithTimeout(context.Background(), contextDuration)
+
+					if _, errOut := c.cmdStorage.SaveOutput(ctx,
+						id, fmt.Sprintf("Stopped with error: %s", err.Error())); errOut != nil {
+						c.log.Error("can't save error in storage", c.log.Attr("op", op), c.log.Attr("error", errOut))
+					}
+
+					cancel()
+
+					c.log.Info("can't execute sctipt", c.log.Attr("op", op), c.log.Attr("error", err))
+					return
+				}
+			} else {
+				return
+			}
+		}
+	}
 }
 
 // scriptName returns valid name of script ...

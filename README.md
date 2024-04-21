@@ -17,6 +17,7 @@ It's a full-stack web application called Script Executor that lets people execut
 - Mock tests
 - GitHub Actions workflow for autotesting
 - Swagger API documentation
+- [ADR](./doc/ADR.md)
 
 ## Development
 
