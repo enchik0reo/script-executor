@@ -39,8 +39,7 @@ type Commander struct {
 	exec       Executor
 
 	log       *logs.CustomLog
-	stopChans map[int64]chan struct{}
-	mu        *sync.RWMutex
+	stopChans *sync.Map
 }
 
 // NewCommander creates a new instance of Commander ...
@@ -49,8 +48,7 @@ func NewCommander(l *logs.CustomLog, s Storager, e Executor) *Commander {
 		log:        l,
 		cmdStorage: s,
 		exec:       e,
-		stopChans:  make(map[int64]chan struct{}),
-		mu:         &sync.RWMutex{},
+		stopChans:  &sync.Map{},
 	}
 
 	return c
@@ -70,9 +68,7 @@ func (c *Commander) CreateNewCommand(ctx context.Context, script string) (int64,
 
 	stopCh := make(chan struct{})
 
-	c.mu.Lock()
-	c.stopChans[id] = stopCh
-	c.mu.Unlock()
+	c.stopChans.Store(id, stopCh)
 
 	resCh, errCh := c.exec.RunScript(script, sName, stopCh)
 
@@ -110,21 +106,22 @@ func (c *Commander) StopCommand(ctx context.Context, id int64) (int64, error) {
 	var res int64
 	var err error
 
-	c.mu.RLock()
-	ch, ok := c.stopChans[id]
-	c.mu.RUnlock()
-	if ok {
-		ch <- struct{}{}
-
-		c.mu.Lock()
-		delete(c.stopChans, id)
-		c.mu.Unlock()
-
-		if res, err = c.cmdStorage.StopOne(ctx, id); err != nil {
-			c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
-		}
-	} else {
+	val, ok := c.stopChans.Load(id)
+	if !ok {
 		return 0, services.ErrNoExecutingCommand
+	}
+
+	ch, ok := val.(chan struct{})
+	if !ok {
+		return 0, errors.New("can't convert value to cahn struct{}")
+	}
+
+	ch <- struct{}{}
+
+	c.stopChans.Delete(id)
+
+	if res, err = c.cmdStorage.StopOne(ctx, id); err != nil {
+		c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
 	}
 
 	return res, nil
@@ -135,18 +132,30 @@ func (c *Commander) StopAllRunningScripts(ctx context.Context) error {
 	const op = "commander.StopAllRunningScripts"
 	var resErr error
 
-	for id, ch := range c.stopChans {
+	c.stopChans.Range(func(key, value any) bool {
+		id, ok := key.(int64)
+		if !ok {
+			resErr = errors.Join(errors.New("can't convert key to int64"))
+			return false
+		}
+
+		ch, ok := value.(chan struct{})
+		if !ok {
+			resErr = errors.Join(errors.New("can't convert value to chan struct{}"))
+			return false
+		}
+
 		ch <- struct{}{}
 
-		c.mu.Lock()
-		delete(c.stopChans, id)
-		c.mu.Unlock()
+		c.stopChans.Delete(id)
 
 		if _, err := c.cmdStorage.StopOne(ctx, id); err != nil {
 			c.log.Error("can't save output in storage", c.log.Attr("op", op), c.log.Attr("error", err))
 			resErr = errors.Join(err)
 		}
-	}
+
+		return true
+	})
 
 	return resErr
 }
@@ -165,9 +174,7 @@ func (c *Commander) saveOutput(id int64, resCh <-chan string, errCh <-chan error
 
 		cancel()
 
-		c.mu.Lock()
-		delete(c.stopChans, id)
-		c.mu.Unlock()
+		c.stopChans.Delete(id)
 
 		close(stopCh)
 	}()

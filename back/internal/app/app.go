@@ -83,19 +83,19 @@ func (a *App) mustStop() {
 	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.CtxTimeout)
 	defer cancel()
 
-	if err := a.cmd.StopAllRunningScripts(ctx); err != nil {
-		a.log.Error("Stoping running commands", a.log.Attr("error", err))
-	}
-
 	if err := a.srv.Stop(ctx); err != nil {
 		a.log.Error("Closing connection to api server", a.log.Attr("error", err))
+	}
+
+	if err := a.cmd.StopAllRunningScripts(ctx); err != nil {
+		a.log.Error("Stopping running commands", a.log.Attr("error", err))
 	}
 
 	if err := a.db.Close(); err != nil {
 		a.log.Error("Closing connection to command storage", a.log.Attr("error", err))
 	}
 
-	a.log.Info("Command executor  stoped gracefully")
+	a.log.Info("Command executor stopped gracefully")
 }
 
 // connectionAttemptToDB tries to connect to database ...

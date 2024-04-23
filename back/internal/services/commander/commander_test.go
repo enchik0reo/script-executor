@@ -20,8 +20,7 @@ func TestCommander_CreateNewCommand(t *testing.T) {
 		Storager  *mocks.Storager
 		Executor  *mocks.Executor
 		log       *logs.CustomLog
-		stopChans map[int64]chan struct{}
-		mu        *sync.RWMutex
+		stopChans *sync.Map
 	}
 	type args struct {
 		ctx    context.Context
@@ -46,7 +45,8 @@ func TestCommander_CreateNewCommand(t *testing.T) {
 				script := "whoami"
 
 				fields.Storager.On("CreateNew", mock.Anything, mock.Anything).Return(int64(1), nil)
-				fields.Executor.On("RunScript", script, script, mock.Anything).Return(make(<-chan string), make(<-chan error))
+				fields.Executor.On("RunScript", script, script, mock.Anything).
+					Return(make(<-chan string), make(<-chan error))
 			},
 		},
 		{
@@ -58,7 +58,8 @@ func TestCommander_CreateNewCommand(t *testing.T) {
 			want:    -1,
 			wantErr: true,
 			prepare: func(args2 args, fields *fields) {
-				fields.Storager.On("CreateNew", mock.Anything, mock.Anything).Return(int64(0), errors.New("some db error"))
+				fields.Storager.On("CreateNew", mock.Anything, mock.Anything).
+					Return(int64(0), errors.New("some db error"))
 			},
 		},
 	}
@@ -70,8 +71,7 @@ func TestCommander_CreateNewCommand(t *testing.T) {
 				Storager:  mocks.NewStorager(t),
 				Executor:  mocks.NewExecutor(t),
 				log:       dlog,
-				stopChans: map[int64]chan struct{}{},
-				mu:        &sync.RWMutex{},
+				stopChans: &sync.Map{},
 			}
 
 			tt.prepare(tt.args, &f)
@@ -81,7 +81,6 @@ func TestCommander_CreateNewCommand(t *testing.T) {
 				exec:       f.Executor,
 				log:        f.log,
 				stopChans:  f.stopChans,
-				mu:         f.mu,
 			}
 
 			got, err := c.CreateNewCommand(tt.args.ctx, tt.args.script)
@@ -281,8 +280,7 @@ func TestCommander_StopCommand(t *testing.T) {
 		Storager  *mocks.MockStorager
 		Executor  *mocks.MockExecutor
 		log       *logs.CustomLog
-		stopChans map[int64]chan struct{}
-		mu        *sync.RWMutex
+		stopChans *sync.Map
 	}
 	type args struct {
 		ctx context.Context
@@ -311,7 +309,7 @@ func TestCommander_StopCommand(t *testing.T) {
 					close(ch)
 				}()
 
-				fields.stopChans = map[int64]chan struct{}{1: ch}
+				fields.stopChans.Store(int64(1), ch)
 
 				fields.Storager.EXPECT().StopOne(
 					context.Background(),
@@ -326,9 +324,7 @@ func TestCommander_StopCommand(t *testing.T) {
 			},
 			want:    0,
 			wantErr: true,
-			prepare: func(args2 args, fields *fields) {
-				fields.stopChans = make(map[int64]chan struct{})
-			},
+			prepare: func(args2 args, fields *fields) {},
 		},
 		{
 			name: "test_3, with db error",
@@ -345,7 +341,7 @@ func TestCommander_StopCommand(t *testing.T) {
 					close(ch)
 				}()
 
-				fields.stopChans = map[int64]chan struct{}{1: ch}
+				fields.stopChans.Store(int64(1), ch)
 
 				fields.Storager.EXPECT().StopOne(
 					context.Background(),
@@ -363,8 +359,7 @@ func TestCommander_StopCommand(t *testing.T) {
 				Storager:  mocks.NewMockStorager(ctrl),
 				Executor:  mocks.NewMockExecutor(ctrl),
 				log:       dlog,
-				stopChans: map[int64]chan struct{}{},
-				mu:        &sync.RWMutex{},
+				stopChans: &sync.Map{},
 			}
 
 			tt.prepare(tt.args, &f)
@@ -374,7 +369,6 @@ func TestCommander_StopCommand(t *testing.T) {
 				exec:       f.Executor,
 				log:        f.log,
 				stopChans:  f.stopChans,
-				mu:         f.mu,
 			}
 
 			got, err := c.StopCommand(tt.args.ctx, tt.args.id)
@@ -398,8 +392,7 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 		Storager  *mocks.MockStorager
 		Executor  *mocks.MockExecutor
 		log       *logs.CustomLog
-		stopChans map[int64]chan struct{}
-		mu        *sync.RWMutex
+		stopChans *sync.Map
 	}
 	type args struct {
 		ctx context.Context
@@ -424,11 +417,23 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 					close(ch)
 				}()
 
-				fields.stopChans = map[int64]chan struct{}{1: ch}
+				ch2 := make(chan struct{})
+
+				go func() {
+					<-ch2
+					close(ch2)
+				}()
+
+				fields.stopChans.Store(int64(1), ch)
+				fields.stopChans.Store(int64(2), ch2)
 
 				fields.Storager.EXPECT().StopOne(
 					context.Background(),
 					int64(1)).Return(int64(1), nil)
+
+				fields.Storager.EXPECT().StopOne(
+					context.Background(),
+					int64(2)).Return(int64(2), nil)
 			},
 		},
 		{
@@ -436,9 +441,7 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 			},
-			prepare: func(args2 args, fields *fields) {
-				fields.stopChans = make(map[int64]chan struct{})
-			},
+			prepare: func(args2 args, fields *fields) {},
 		},
 		{
 			name: "test_3, with db error",
@@ -454,7 +457,7 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 					close(ch)
 				}()
 
-				fields.stopChans = map[int64]chan struct{}{1: ch}
+				fields.stopChans.Store(int64(1), ch)
 
 				fields.Storager.EXPECT().StopOne(
 					context.Background(),
@@ -472,8 +475,7 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 				Storager:  mocks.NewMockStorager(ctrl),
 				Executor:  mocks.NewMockExecutor(ctrl),
 				log:       dlog,
-				stopChans: map[int64]chan struct{}{},
-				mu:        &sync.RWMutex{},
+				stopChans: &sync.Map{},
 			}
 
 			tt.prepare(tt.args, &f)
@@ -483,7 +485,6 @@ func TestCommander_StopAllRunningScripts(t *testing.T) {
 				exec:       f.Executor,
 				log:        f.log,
 				stopChans:  f.stopChans,
-				mu:         f.mu,
 			}
 
 			err := c.StopAllRunningScripts(tt.args.ctx)
