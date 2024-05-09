@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:      
+  front:
+    image: enchik0reo/script_executor.frontend:latest
+    restart: always
+    container_name: se-frontend
+    ports:
+      - "3003:80"

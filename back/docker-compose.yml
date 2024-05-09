@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:      
+  executor:
+    image: enchik0reo/script_executor.backend:latest
+    restart: always
+    container_name: se-backend
+    depends_on:
+      - postgres
+    ports:
+      - "8008:8008"
+
+  postgres:
+    image: postgres:16.1-bullseye
+    restart: always
+    container_name: se-storage
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_DB=command_api
+    ports:
+      - 5432:5432
+    volumes:
+      - ./back/scripts/1_init.up.sql:/docker-entrypoint-initdb.d/init.sql

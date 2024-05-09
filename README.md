@@ -15,8 +15,8 @@ It's a full-stack web application called Script Executor that lets people execut
 - PostgreSQL as data base
 - 3 levels of logging (edit in ./back/configs/local.yaml)
 - Mock tests
-- GitHub Actions workflow for autotesting
 - Swagger API documentation
+- GitHub Actions Pipeline
 - [ADR](./doc/ADR.md)
 
 ## Development
