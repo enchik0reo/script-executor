@@ -2,7 +2,7 @@ version: '3.8'
 
 services:      
   front:
-    image: enchik0reo/script_executor.frontend:latest
+    image: enchik0reo/script_executor.frontend:0.0.${IMAGE_TAG}
     restart: always
     container_name: se-frontend
     ports:

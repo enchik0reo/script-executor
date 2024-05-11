@@ -77,7 +77,7 @@ jobs:
       with:
         context: ./back
         push: true
-        tags: enchik0reo/script_executor.backend:latest
+        tags: enchik0reo/script_executor.backend:0.0.${{ github.run_id }}
 
     - name: Install ssh keys
       run: |
@@ -85,23 +85,22 @@ jobs:
         echo -e "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} > ~/.ssh/known_hosts
 
-    - name: Create docker compose config
+    - name: Copy db script
       run: |
-        cat ./back/docker-compose.yml | envsubst > docker-compose-secret-1.yml
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "mkdir -p ./back/scripts"
+        scp ./back/scripts/1_init.up.sql ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:./back/scripts
+
+    - name: Create env
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "cat << EOF > .env
+        IMAGE_TAG=${{ github.run_id }}
+        EOF"
 
     - name: Copy docker compose config
-      run: scp docker-compose-secret-1.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:docker-compose-back.yml
+      run: scp ./back/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:docker-compose-back.yml
 
-    - name: Down pull up
-      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker-compose -f docker-compose-back.yml down && docker-compose -f docker-compose-back.yml pull && docker-compose -f docker-compose-back.yml up -d && exit"
-  
-    - name: Cleanup config
-      if: always()
-      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "rm docker-compose-back.yml"
-  
-    - name: Cleanup keys
-      if: always()
-      run: rm -rf ~/.ssh docker-compose-secret-1yml
+    - name: Compose down and up
+      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker-compose -f docker-compose-back.yml down && docker-compose -f docker-compose-back.yml up -d && exit"
 
   frontend:
     name: Deploy Frontend
@@ -122,7 +121,7 @@ jobs:
       with:
         context: ./front
         push: true
-        tags: enchik0reo/script_executor.frontend:latest
+        tags: enchik0reo/script_executor.frontend:0.0.${{ github.run_id }}
 
     - name: Install ssh keys
       run: |
@@ -130,20 +129,14 @@ jobs:
         echo -e "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} > ~/.ssh/known_hosts
 
-    - name: Create docker compose config
+    - name: Create env
       run: |
-        cat ./front/docker-compose.yml | envsubst > docker-compose-secret-2.yml
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "cat << EOF > .env
+        IMAGE_TAG=${{ github.run_id }}
+        EOF"
 
     - name: Copy docker compose config
-      run: scp docker-compose-secret-2.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:docker-compose-front.yml
+      run: scp ./front/docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:docker-compose-front.yml
 
-    - name: Down pull up
-      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker-compose -p react -f docker-compose-front.yml down && docker-compose -p react -f docker-compose-front.yml pull && docker-compose -p react -f docker-compose-front.yml up -d && exit"
-  
-    - name: Cleanup config
-      if: always()
-      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "rm docker-compose-front.yml"
-  
-    - name: Cleanup keys
-      if: always()
-      run: rm -rf ~/.ssh docker-compose-secret-2.yml
+    - name: Compose down and up
+      run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker-compose -p react -f docker-compose-front.yml down && docker-compose -p react -f docker-compose-front.yml up -d && exit"

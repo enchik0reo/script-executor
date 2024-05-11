@@ -2,7 +2,7 @@ version: '3.8'
 
 services:      
   executor:
-    image: enchik0reo/script_executor.backend:latest
+    image: enchik0reo/script_executor.backend:0.0.${IMAGE_TAG}
     restart: always
     container_name: se-backend
     depends_on:
