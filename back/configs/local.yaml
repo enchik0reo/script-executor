@@ -17,4 +17,4 @@ api_server:
   idle_timeout: 600s
 
 frontend:
-  domains: ["http://localhost:3003"]
+  domains: ["http://localhost:80", "http://176.109.99.197","http://enchik-pet.ru"]

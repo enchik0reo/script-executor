@@ -6,4 +6,4 @@ services:
     restart: always
     container_name: se-frontend
     ports:
-      - "3003:80"
+      - "80:80"
